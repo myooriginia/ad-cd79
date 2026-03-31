@@ -401,6 +401,91 @@
       font-size: 12px; color: var(--txt2);
       margin-bottom: 5px;
     }
+
+    /* ── FILTER BAR ── */
+    .filter-bar {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 2px;
+    }
+    .filter-bar::-webkit-scrollbar { display: none; }
+
+    /* ── FAB ── */
+    .fab {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1000;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--cd79);
+      color: #fff;
+      font-size: 28px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,.3);
+      line-height: 1;
+      transition: background .15s, box-shadow .15s;
+    }
+    .fab:hover  { background: var(--cd79dk); box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+    .fab:active { background: var(--cd79dk); opacity: .9; }
+    .filter-btn {
+      flex-shrink: 0;
+      padding: 9px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1.5px solid var(--cd79);
+      background: var(--cd79lt);
+      color: var(--cd79dk);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background .15s, color .15s;
+    }
+    .filter-btn.active { background: var(--cd79); color: #fff; border-color: var(--cd79); }
+    .filter-btn:active { opacity: .8; }
+
+    /* ── SUMMARY CARD ── */
+    .summary-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      border-left: 4px solid;
+      padding: 12px 14px;
+    }
+    .summary-card-title {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .summary-item {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 8px 10px;
+      text-align: center;
+    }
+    .summary-item-val {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--txt);
+      line-height: 1.2;
+    }
+    .summary-item-lbl {
+      font-size: 11px;
+      color: var(--txt2);
+      margin-top: 2px;
+    }
   </style>
 </head>
 <body>
@@ -858,8 +943,16 @@
   /* ═══════════════════════════════════
      ÉCRAN 2 — SALLES D'UN COLLÈGE
   ═══════════════════════════════════ */
+  const FILTRES = [
+    { key: 'all',          label: 'Tout' },
+    { key: 'non_commence', label: '🔴 Non commencé' },
+    { key: 'en_cours',     label: '🟡 En cours' },
+    { key: 'termine',      label: '🟢 Terminé' },
+  ];
+
   const SallesScreen = ({ data, setData, collegeId, onBack, onSelect }) => {
     const [showAdd, setShowAdd] = useState(false);
+    const [filtre,  setFiltre]  = useState('all');
 
     const college = data.colleges.find(c => c.id === collegeId);
     if (!college) return null;
@@ -900,6 +993,52 @@
     const terminees = college.salles.filter(s => statutSalle(s) === 'termine').length;
     const enCours   = college.salles.filter(s => statutSalle(s) === 'en_cours').length;
 
+    const sallesFiltrees = filtre === 'all'
+      ? college.salles
+      : college.salles.filter(s => statutSalle(s) === filtre);
+
+    const summaryPcProf   = sallesFiltrees.reduce((s, sl) => s + (sl.nbPcProf   || 0), 0);
+    const summaryPcEleves = sallesFiltrees.reduce((s, sl) => s + (sl.nbPcEleves || 0), 0);
+
+    const groupes = ['non_commence', 'en_cours', 'termine']
+      .map(st => ({ statut: st, salles: college.salles.filter(s => statutSalle(s) === st) }))
+      .filter(g => g.salles.length > 0);
+
+    const renderSalleCard = (salle) => {
+      const ss = statutSalle(salle);
+      const { done, total } = progressSalle(salle);
+      const pct = total ? Math.round((done / total) * 100) : 0;
+      return (
+        <div key={salle.id} className="card" onClick={() => onSelect(salle.id)}>
+          <div className="card-head">
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="card-name">{salle.nom}</div>
+            </div>
+            <div className="card-actions">
+              <Badge statut={ss} />
+              <button className="del-btn" onClick={e => deleteSalle(e, salle.id)} title="Supprimer">✕</button>
+            </div>
+          </div>
+          <div className="chips">
+            <span className="chip">🖥️ {salle.nbPcProf} PC prof</span>
+            {salle.nbPcEleves > 0 && (
+              <span className="chip">🖥️ {salle.nbPcEleves} PC élève{salle.nbPcEleves > 1 ? 's' : ''}</span>
+            )}
+            {salle.hasVideoProjecteur && <span className="chip">📽️ Vidéoproj</span>}
+            {salle.hasVeyon           && <span className="chip">🛡️ Veyon</span>}
+            {salle.hasImprimante      && <span className="chip">🖨️ Imprimante</span>}
+          </div>
+          <div style={{ marginTop: 10 }}>
+            <div className="prog-lbl">
+              <span>Progression</span>
+              <span>{done}/{total} étapes ({pct}%)</span>
+            </div>
+            <ProgBar done={done} total={total} />
+          </div>
+        </div>
+      );
+    };
+
     return (
       <div className="app">
         <div className="header">
@@ -929,10 +1068,6 @@
             </div>
           )}
 
-          <button className="btn btn-primary" onClick={() => setShowAdd(true)}>
-            + Ajouter une salle
-          </button>
-
           {college.salles.length === 0 ? (
             <div className="empty">
               <div className="empty-icon">🚪</div>
@@ -940,44 +1075,63 @@
             </div>
           ) : (
             <>
-              <div className="sec-title">Salles ({college.salles.length})</div>
-              {college.salles.map(salle => {
-                const ss = statutSalle(salle);
-                const { done, total } = progressSalle(salle);
-                const pct = total ? Math.round((done / total) * 100) : 0;
+              {/* Barre de filtres */}
+              <div className="filter-bar">
+                {FILTRES.map(f => (
+                  <button
+                    key={f.key}
+                    className={`filter-btn${filtre === f.key ? ' active' : ''}`}
+                    onClick={() => setFiltre(f.key)}
+                  >{f.label}</button>
+                ))}
+              </div>
 
-                return (
-                  <div key={salle.id} className="card" onClick={() => onSelect(salle.id)}>
-                    <div className="card-head">
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div className="card-name">{salle.nom}</div>
-                      </div>
-                      <div className="card-actions">
-                        <Badge statut={ss} />
-                        <button className="del-btn" onClick={e => deleteSalle(e, salle.id)} title="Supprimer">✕</button>
-                      </div>
+              {/* Récapitulatif (filtre actif seulement) */}
+              {filtre !== 'all' && (
+                <div className="summary-card" style={{ borderLeftColor: STATUT_COLOR[filtre] }}>
+                  <div className="summary-card-title" style={{ color: STATUT_COLOR[filtre] }}>
+                    {STATUT_DOT[filtre]} {STATUT_LABEL[filtre]}
+                  </div>
+                  <div className="summary-grid">
+                    <div className="summary-item">
+                      <div className="summary-item-val">{sallesFiltrees.length}</div>
+                      <div className="summary-item-lbl">🏫 Salle{sallesFiltrees.length > 1 ? 's' : ''}</div>
                     </div>
-
-                    <div className="chips">
-                      <span className="chip">🖥️ {salle.nbPcProf} PC prof</span>
-                      {salle.nbPcEleves > 0 && (
-                        <span className="chip">🖥️ {salle.nbPcEleves} PC élève{salle.nbPcEleves > 1 ? 's' : ''}</span>
-                      )}
-                      {salle.hasVideoProjecteur && <span className="chip">📽️ Vidéoproj</span>}
-                      {salle.hasVeyon           && <span className="chip">🛡️ Veyon</span>}
-                      {salle.hasImprimante      && <span className="chip">🖨️ Imprimante</span>}
+                    <div className="summary-item">
+                      <div className="summary-item-val">{summaryPcProf}</div>
+                      <div className="summary-item-lbl">👨‍🏫 PC prof</div>
                     </div>
-
-                    <div style={{ marginTop: 10 }}>
-                      <div className="prog-lbl">
-                        <span>Progression</span>
-                        <span>{done}/{total} étapes ({pct}%)</span>
-                      </div>
-                      <ProgBar done={done} total={total} />
+                    <div className="summary-item">
+                      <div className="summary-item-val">{summaryPcEleves}</div>
+                      <div className="summary-item-lbl">🖥️ PC élèves</div>
+                    </div>
+                    <div className="summary-item">
+                      <div className="summary-item-val">{summaryPcProf + summaryPcEleves}</div>
+                      <div className="summary-item-lbl">📊 Total PC</div>
                     </div>
                   </div>
-                );
-              })}
+                </div>
+              )}
+
+              {/* Liste filtrée ou groupée */}
+              {filtre !== 'all' ? (
+                sallesFiltrees.length === 0 ? (
+                  <div className="empty" style={{ padding: '24px 0' }}>
+                    <div className="empty-txt">Aucune salle avec ce statut pour le moment.</div>
+                  </div>
+                ) : (
+                  sallesFiltrees.map(salle => renderSalleCard(salle))
+                )
+              ) : (
+                groupes.map(groupe => (
+                  <React.Fragment key={groupe.statut}>
+                    <div className="sec-title">
+                      {STATUT_DOT[groupe.statut]} {STATUT_LABEL[groupe.statut]} ({groupe.salles.length})
+                    </div>
+                    {groupe.salles.map(salle => renderSalleCard(salle))}
+                  </React.Fragment>
+                ))
+              )}
             </>
           )}
 
@@ -993,8 +1147,10 @@
             />
           </div>
 
-          <div style={{ height: 16 }} />
+          <div style={{ height: 80 }} />
         </div>
+
+        <button className="fab" onClick={() => setShowAdd(true)} title="Ajouter une salle">+</button>
 
         {showAdd && <AddSalleModal onClose={() => setShowAdd(false)} onAdd={addSalle} />}
       </div>
