@@ -1,0 +1,26 @@
+{
+  "name": "Déploiement AD — CD79",
+  "short_name": "AD CD79",
+  "description": "Suivi du déploiement de postes Windows dans les collèges du Conseil Départemental des Deux-Sèvres",
+  "lang": "fr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#105570",
+  "theme_color": "#187097",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

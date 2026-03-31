@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#187097" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="AD CD79" />
+  <title>Déploiement AD — CD79</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    @font-face {
+      font-family: 'Marianne';
+      src: url('https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.11.2/dist/fonts/Marianne-Regular.woff2') format('woff2');
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Marianne';
+      src: url('https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.11.2/dist/fonts/Marianne-Medium.woff2') format('woff2');
+      font-weight: 500 600; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Marianne';
+      src: url('https://cdn.jsdelivr.net/npm/@gouvfr/dsfr@1.11.2/dist/fonts/Marianne-Bold.woff2') format('woff2');
+      font-weight: 700; font-style: normal; font-display: swap;
+    }
+  </style>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cd79:    #187097;
+      --cd79dk:  #105570;
+      --cd79lt:  #e8f4f8;
+      --rouge:   #EF4444;
+      --jaune:   #F59E0B;
+      --vert:    #22C55E;
+      --bg:      #f0f7fb;
+      --surface: #ffffff;
+      --txt:     #1a1a2e;
+      --txt2:    #4a5568;
+      --border:  #cce3ed;
+      --radius:  12px;
+    }
+
+    html, body { height: 100%; background: var(--bg); }
+
+    body {
+      font-family: 'Marianne', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: var(--txt);
+      line-height: 1.5;
+    }
+
+    #root { min-height: 100vh; }
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: var(--cd79dk);
+      color: #fff;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(16,85,112,.35);
+    }
+    .header-info { flex: 1; min-width: 0; }
+    .header-title { font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .header-sub   { font-size: 12px; opacity: .8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .btn-back {
+      background: rgba(255,255,255,.18);
+      border: none;
+      color: #fff;
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      font-size: 22px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .btn-back:active { background: rgba(255,255,255,.3); }
+
+    .btn-edit {
+      background: rgba(255,255,255,.15);
+      border: none; color: white;
+      width: 36px; height: 36px;
+      border-radius: 8px; font-size: 17px;
+      cursor: pointer; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .btn-edit:active { background: rgba(255,255,255,.3); }
+
+    /* ── CONTENT ── */
+    .content {
+      flex: 1;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 18px;
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      transition: background .15s, opacity .15s, transform .1s;
+    }
+    .btn:active { opacity: .85; transform: scale(.98); }
+    .btn:disabled { opacity: .45; pointer-events: none; }
+    .btn-primary   { background: var(--cd79); color: #fff; }
+    .btn-primary:active { background: var(--cd79dk); opacity: 1; }
+    .btn-secondary { background: var(--cd79lt); color: var(--cd79dk); font-weight: 600; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: 0 1px 4px rgba(24,112,151,.12);
+      cursor: pointer;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--cd79);
+      transition: transform .1s, box-shadow .1s;
+    }
+    .card:active { transform: scale(.985); box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+
+    .card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .card-name  { font-size: 15px; font-weight: 600; }
+    .card-sub   { font-size: 13px; color: var(--txt2); margin-top: 2px; }
+
+    .card-actions { display: flex; align-items: flex-start; gap: 6px; flex-shrink: 0; }
+
+    .del-btn {
+      background: none; border: none;
+      color: #94a3b8; font-size: 16px;
+      cursor: pointer; padding: 2px 6px;
+      border-radius: 6px; line-height: 1;
+    }
+    .del-btn:active { background: #fee2e2; color: #dc2626; }
+
+    /* ── BADGE ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .badge-non_commence { background: #fee2e2; color: #dc2626; }
+    .badge-en_cours     { background: #fef3c7; color: #b45309; }
+    .badge-termine      { background: #dcfce7; color: #15803d; }
+
+    /* ── PROGRESS ── */
+    .prog-track {
+      background: var(--cd79lt);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .prog-fill {
+      border-radius: 99px;
+      transition: width .35s ease;
+    }
+    .prog-lbl {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--txt2);
+      margin-bottom: 4px;
+    }
+
+    /* ── CHIPS ── */
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--cd79lt);
+      border-radius: 6px; padding: 3px 8px;
+      font-size: 12px; color: var(--cd79dk);
+      font-weight: 500;
+    }
+
+    /* ── STATS ROW ── */
+    .stats-row { display: flex; gap: 8px; }
+    .stat-card {
+      flex: 1;
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 12px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    .stat-val { font-size: 22px; font-weight: 700; color: var(--cd79); }
+    .stat-lbl { font-size: 11px; color: var(--txt2); text-transform: uppercase; letter-spacing: .5px; margin-top: 1px; }
+
+    /* ── SECTION TITLE ── */
+    .sec-title {
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
+      color: var(--cd79dk); padding: 2px 0;
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty { text-align: center; padding: 40px 16px; color: var(--txt2); }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-txt  { font-size: 14px; line-height: 1.7; }
+
+    /* ── MODAL ── */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 200;
+      display: flex; align-items: flex-end;
+    }
+    .modal {
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      padding: 24px 18px 32px;
+      width: 100%;
+      max-height: 92vh;
+      overflow-y: auto;
+      animation: slideUp .22s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+    .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; text-align: center; color: var(--cd79dk); }
+    .modal-row { display: flex; gap: 10px; margin-top: 18px; }
+    .modal-row .btn { flex: 1; }
+
+    /* ── FORM ── */
+    .fg { margin-bottom: 14px; }
+    .flbl {
+      display: block;
+      font-size: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .5px;
+      color: var(--txt2); margin-bottom: 5px;
+    }
+    .finput {
+      width: 100%; padding: 12px 14px;
+      border: 2px solid var(--border); border-radius: 10px;
+      font-size: 16px; color: var(--txt);
+      background: var(--surface);
+      transition: border-color .2s;
+      -webkit-appearance: none;
+    }
+    .finput:focus { outline: none; border-color: var(--cd79); }
+
+    .toggle-row {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-row-lbl { font-size: 15px; font-weight: 500; }
+
+    .tgl { position: relative; width: 48px; height: 26px; flex-shrink: 0; }
+    .tgl input { opacity: 0; width: 0; height: 0; }
+    .tgl-slider {
+      position: absolute; inset: 0;
+      background: #b0c4ce; border-radius: 26px; cursor: pointer;
+      transition: background .2s;
+    }
+    .tgl-slider::before {
+      content: '';
+      position: absolute;
+      width: 20px; height: 20px;
+      left: 3px; bottom: 3px;
+      background: #fff; border-radius: 50%;
+      transition: transform .2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,.2);
+    }
+    .tgl input:checked + .tgl-slider { background: var(--cd79); }
+    .tgl input:checked + .tgl-slider::before { transform: translateX(22px); }
+
+    /* ── PHASE ROW ── */
+    .phase-row {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--cd79lt);
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px;
+      cursor: pointer; user-select: none;
+      transition: background .1s, border-left-color .2s;
+    }
+    .phase-row:active { background: var(--cd79lt); }
+    .phase-row.ck-on { border-left-color: var(--cd79); }
+    .phase-ck {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      border: 2px solid var(--cd79);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background .15s, border-color .15s;
+      background: var(--surface);
+    }
+    .phase-ck.on { background: var(--cd79); border-color: var(--cd79); }
+    .phase-ck-check { color: #fff; font-size: 16px; font-weight: 700; line-height: 1; }
+    .phase-ico { font-size: 20px; flex-shrink: 0; }
+    .phase-ttl { flex: 1; font-size: 15px; font-weight: 600; line-height: 1.3; }
+    .phase-ttl.done { color: var(--txt2); text-decoration: line-through; }
+
+    /* ── NOTES ── */
+    .notes-wrap {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .notes-hd {
+      padding: 12px 14px;
+      font-size: 14px; font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      background: var(--cd79lt);
+      color: var(--cd79dk);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .notes-ta {
+      width: 100%; min-height: 100px;
+      padding: 12px 14px;
+      border: none; resize: vertical;
+      font-size: 15px; font-family: inherit;
+      color: var(--txt); background: var(--surface);
+    }
+    .notes-ta:focus { outline: none; }
+    .notes-ta::placeholder { color: #94a3b8; }
+
+    /* ── NOTES COLLÈGE ── */
+    .college-notes {
+      background: var(--cd79lt);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--cd79);
+      overflow: hidden;
+    }
+    .college-notes-hd {
+      padding: 10px 14px;
+      font-size: 13px; font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      color: var(--cd79dk);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .college-notes-ta {
+      width: 100%; min-height: 80px;
+      padding: 12px 14px;
+      border: none; resize: vertical;
+      font-size: 15px; font-family: inherit;
+      color: var(--txt); background: transparent;
+    }
+    .college-notes-ta:focus { outline: none; }
+    .college-notes-ta::placeholder { color: #7a9aaa; font-size: 13px; }
+
+    /* ── INFO BOX ── */
+    .info-box {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--cd79);
+      padding: 14px;
+    }
+    .info-box-row {
+      display: flex; justify-content: space-between;
+      font-size: 12px; color: var(--txt2);
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  const { useState, useEffect, useCallback } = React;
+
+  /* ═══════════════════════════════════
+     UTILS
+  ═══════════════════════════════════ */
+  const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
+  const STORAGE_KEY = 'ad_cd79_v1';
+  const loadData = () => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return { colleges: [] };
+      const parsed = JSON.parse(raw);
+      parsed.colleges = parsed.colleges.map(c => ({
+        notes: '',
+        ...c,
+        salles: c.salles.map(s => {
+          // Defaults pour champs absents
+          const salle = { nbPcProf: 1, hasImprimante: false, ...s };
+
+          // Migre les phases : nettoie, retire l'ancienne p5 groupée
+          const cleanPhases = (salle.phases || [])
+            .filter(p => p.id !== 'p5')
+            .map(p => ({
+              ...p,
+              checked: typeof p.checked === 'boolean'
+                ? p.checked
+                : Array.isArray(p.etapes) && p.etapes.length > 0 && p.etapes.every(e => e.checked === true),
+              etapes: (p.etapes || []).map(({ checked: _c, ...e }) => e),
+            }));
+
+          // Ajoute les phases optionnelles individuelles si absentes
+          const ids = new Set(cleanPhases.map(p => p.id));
+          if (salle.hasVideoProjecteur && !ids.has('pvp'))
+            cleanPhases.push({ ...OPTIONAL_PHASES.pvp, checked: false, etapes: [] });
+          if (salle.hasVeyon && !ids.has('pveyon'))
+            cleanPhases.push({ ...OPTIONAL_PHASES.pveyon, checked: false, etapes: [] });
+          if (salle.hasImprimante && !ids.has('pimprimante'))
+            cleanPhases.push({ ...OPTIONAL_PHASES.pimprimante, checked: false, etapes: [] });
+
+          return { ...salle, phases: cleanPhases };
+        }),
+      }));
+      return parsed;
+    } catch { return { colleges: [] }; }
+  };
+  const saveData = (d) => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch {}
+  };
+
+  /* ═══════════════════════════════════
+     PHASES FACTORY
+  ═══════════════════════════════════ */
+  // Phases optionnelles : définition de référence par id
+  const OPTIONAL_PHASES = {
+    pvp:         { id: 'pvp',         icone: '📽️', nom: "Vidéoprojecteur — Duplication d'écran" },
+    pveyon:      { id: 'pveyon',      icone: '🛡️', nom: 'Veyon — Configuration' },
+    pimprimante: { id: 'pimprimante', icone: '🖨️', nom: 'Imprimante — Configuration' },
+  };
+
+  const createPhases = (hasVP, hasVeyon, hasImprimante) => {
+    const phases = [
+      {
+        id: 'p1', numero: 1, checked: false,
+        nom: 'BIOS & PXE', icone: '💾',
+        etapes: [
+          { id: 'p1-e1', label: 'Réglages BIOS' },
+          { id: 'p1-e2', label: 'Boot F12 réseau' },
+          { id: 'p1-e3', label: 'Image téléchargée' },
+        ],
+      },
+      {
+        id: 'p2', numero: 2, checked: false,
+        nom: 'Configuration Manager', icone: '⚙️',
+        etapes: [
+          { id: 'p2-e1', label: 'Nommage du PC' },
+          { id: 'p2-e2', label: 'Sélection des modules' },
+        ],
+      },
+      {
+        id: 'p3', numero: 3, checked: false,
+        nom: 'Installation', icone: '💿',
+        etapes: [
+          { id: 'p3-e1', label: 'Windows' },
+          { id: 'p3-e2', label: 'Pilotes' },
+          { id: 'p3-e3', label: 'Logiciels' },
+        ],
+      },
+      {
+        id: 'p4', numero: 4, checked: false,
+        nom: 'Mises à jour', icone: '🔄',
+        etapes: [
+          { id: 'p4-e1', label: 'Windows Update' },
+          { id: 'p4-e2', label: 'Synchronisation Centre Logiciel' },
+        ],
+      },
+    ];
+    if (hasVP)         phases.push({ ...OPTIONAL_PHASES.pvp,         checked: false, etapes: [] });
+    if (hasVeyon)      phases.push({ ...OPTIONAL_PHASES.pveyon,      checked: false, etapes: [] });
+    if (hasImprimante) phases.push({ ...OPTIONAL_PHASES.pimprimante, checked: false, etapes: [] });
+    return phases;
+  };
+
+  // Reconstruit les phases optionnelles après modification de config,
+  // en conservant p1–p4 et l'état coché de chaque phase optionnelle existante.
+  const rebuildOptionalPhases = (phases, hasVP, hasVeyon, hasImprimante) => {
+    const base = phases.filter(p => ['p1','p2','p3','p4'].includes(p.id));
+    const prev = (id) => phases.find(p => p.id === id);
+    if (hasVP)         base.push({ ...OPTIONAL_PHASES.pvp,         checked: prev('pvp')?.checked         || false, etapes: [] });
+    if (hasVeyon)      base.push({ ...OPTIONAL_PHASES.pveyon,      checked: prev('pveyon')?.checked      || false, etapes: [] });
+    if (hasImprimante) base.push({ ...OPTIONAL_PHASES.pimprimante, checked: prev('pimprimante')?.checked || false, etapes: [] });
+    return base;
+  };
+
+  /* ═══════════════════════════════════
+     STATUS HELPERS
+  ═══════════════════════════════════ */
+  const statutSalle = (salle) => {
+    const total = salle.phases.length;
+    if (!total) return 'non_commence';
+    const n = salle.phases.filter(p => p.checked).length;
+    if (n === 0) return 'non_commence';
+    if (n === total) return 'termine';
+    return 'en_cours';
+  };
+
+  const statutCollege = (college) => {
+    if (!college.salles.length) return 'non_commence';
+    const s = college.salles.map(statutSalle);
+    if (s.every(x => x === 'non_commence')) return 'non_commence';
+    if (s.every(x => x === 'termine'))      return 'termine';
+    return 'en_cours';
+  };
+
+  const progressSalle = (salle) => ({
+    done:  salle.phases.filter(p => p.checked).length,
+    total: salle.phases.length,
+  });
+
+  const STATUT_LABEL = { non_commence: 'Non commencé', en_cours: 'En cours', termine: 'Terminé' };
+  const STATUT_DOT   = { non_commence: '🔴', en_cours: '🟡', termine: '🟢' };
+  const STATUT_COLOR = { non_commence: '#EF4444', en_cours: '#F59E0B', termine: '#22C55E' };
+
+  /* ═══════════════════════════════════
+     BASE COMPONENTS
+  ═══════════════════════════════════ */
+  const Badge = ({ statut }) => (
+    <span className={`badge badge-${statut}`}>
+      {STATUT_DOT[statut]} {STATUT_LABEL[statut]}
+    </span>
+  );
+
+  const ProgBar = ({ done, total, height = 7 }) => {
+    const pct = total ? Math.round((done / total) * 100) : 0;
+    const color = pct === 100 ? '#16a34a' : pct > 0 ? '#187097' : '#e8f4f8';
+    return (
+      <div className="prog-track" style={{ height }}>
+        <div className="prog-fill" style={{ width: `${pct}%`, background: color, height: '100%' }} />
+      </div>
+    );
+  };
+
+  const Toggle = ({ checked, onChange }) => (
+    <label className="tgl">
+      <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} />
+      <span className="tgl-slider" />
+    </label>
+  );
+
+  const Modal = ({ title, onClose, children }) => (
+    <div className="overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="modal-title">{title}</div>
+        {children}
+      </div>
+    </div>
+  );
+
+  /* ═══════════════════════════════════
+     ADD COLLEGE MODAL
+  ═══════════════════════════════════ */
+  const AddCollegeModal = ({ onClose, onAdd }) => {
+    const [nom, setNom]   = useState('');
+    const [ville, setVille] = useState('');
+
+    const submit = () => {
+      if (!nom.trim()) return;
+      onAdd({ nom: nom.trim(), ville: ville.trim() });
+      onClose();
+    };
+
+    return (
+      <Modal title="➕ Nouveau collège" onClose={onClose}>
+        <div className="fg">
+          <label className="flbl">Nom du collège *</label>
+          <input className="finput" type="text" placeholder="ex : Collège Jean Moulin"
+            value={nom} onChange={e => setNom(e.target.value)} autoFocus />
+        </div>
+        <div className="fg">
+          <label className="flbl">Ville</label>
+          <input className="finput" type="text" placeholder="ex : Niort"
+            value={ville} onChange={e => setVille(e.target.value)} />
+        </div>
+        <div className="modal-row">
+          <button className="btn btn-secondary" onClick={onClose}>Annuler</button>
+          <button className="btn btn-primary"   onClick={submit} disabled={!nom.trim()}>Créer</button>
+        </div>
+      </Modal>
+    );
+  };
+
+  /* ═══════════════════════════════════
+     ADD SALLE MODAL
+  ═══════════════════════════════════ */
+  const AddSalleModal = ({ onClose, onAdd }) => {
+    const [nom,           setNom]           = useState('');
+    const [nbPcProf,      setNbPcProf]      = useState(1);
+    const [nbPc,          setNbPc]          = useState(0);
+    const [hasVP,         setHasVP]         = useState(false);
+    const [hasVeyon,      setHasVeyon]      = useState(false);
+    const [hasImprimante, setHasImprimante] = useState(false);
+
+    const submit = () => {
+      if (!nom.trim()) return;
+      onAdd({ nom: nom.trim(), nbPcProf: Math.max(1, parseInt(nbPcProf) || 1), nbPcEleves: parseInt(nbPc) || 0, hasVideoProjecteur: hasVP, hasVeyon, hasImprimante });
+      onClose();
+    };
+
+    return (
+      <Modal title="➕ Nouvelle salle" onClose={onClose}>
+        <div className="fg">
+          <label className="flbl">Nom de la salle *</label>
+          <input className="finput" type="text" placeholder="ex : Salle B12, Labo Info"
+            value={nom} onChange={e => setNom(e.target.value)} autoFocus />
+        </div>
+        <div className="fg">
+          <label className="flbl">Nombre de PC professeurs *</label>
+          <input className="finput" type="number" min="1" placeholder="1"
+            value={nbPcProf} onChange={e => setNbPcProf(e.target.value)} />
+        </div>
+        <div className="fg">
+          <label className="flbl">Nombre de PC élèves</label>
+          <input className="finput" type="number" min="0" placeholder="0"
+            value={nbPc} onChange={e => setNbPc(e.target.value)} />
+        </div>
+        <div style={{ marginBottom: 4 }}>
+          <div className="toggle-row">
+            <span className="toggle-row-lbl">📽️ Vidéoprojecteur</span>
+            <Toggle checked={hasVP} onChange={setHasVP} />
+          </div>
+          <div className="toggle-row">
+            <span className="toggle-row-lbl">🛡️ Veyon</span>
+            <Toggle checked={hasVeyon} onChange={setHasVeyon} />
+          </div>
+          <div className="toggle-row">
+            <span className="toggle-row-lbl">🖨️ Imprimante</span>
+            <Toggle checked={hasImprimante} onChange={setHasImprimante} />
+          </div>
+        </div>
+        <div className="modal-row">
+          <button className="btn btn-secondary" onClick={onClose}>Annuler</button>
+          <button className="btn btn-primary"   onClick={submit} disabled={!nom.trim()}>Créer</button>
+        </div>
+      </Modal>
+    );
+  };
+
+  /* ═══════════════════════════════════
+     EDIT SALLE MODAL
+  ═══════════════════════════════════ */
+  const EditSalleModal = ({ salle, onClose, onSave }) => {
+    const [nom,           setNom]           = useState(salle.nom);
+    const [nbPcProf,      setNbPcProf]      = useState(salle.nbPcProf);
+    const [nbPc,          setNbPc]          = useState(salle.nbPcEleves);
+    const [hasVP,         setHasVP]         = useState(salle.hasVideoProjecteur);
+    const [hasVeyon,      setHasVeyon]      = useState(salle.hasVeyon);
+    const [hasImprimante, setHasImprimante] = useState(salle.hasImprimante);
+
+    const submit = () => {
+      if (!nom.trim()) return;
+      onSave({
+        nom:              nom.trim(),
+        nbPcProf:         Math.max(1, parseInt(nbPcProf) || 1),
+        nbPcEleves:       parseInt(nbPc) || 0,
+        hasVideoProjecteur: hasVP,
+        hasVeyon,
+        hasImprimante,
+      });
+      onClose();
+    };
+
+    return (
+      <Modal title="⚙️ Modifier la salle" onClose={onClose}>
+        <div className="fg">
+          <label className="flbl">Nom de la salle *</label>
+          <input className="finput" type="text" value={nom}
+            onChange={e => setNom(e.target.value)} autoFocus />
+        </div>
+        <div className="fg">
+          <label className="flbl">Nombre de PC professeurs *</label>
+          <input className="finput" type="number" min="1" value={nbPcProf}
+            onChange={e => setNbPcProf(e.target.value)} />
+        </div>
+        <div className="fg">
+          <label className="flbl">Nombre de PC élèves</label>
+          <input className="finput" type="number" min="0" value={nbPc}
+            onChange={e => setNbPc(e.target.value)} />
+        </div>
+        <div style={{ marginBottom: 4 }}>
+          <div className="toggle-row">
+            <span className="toggle-row-lbl">📽️ Vidéoprojecteur</span>
+            <Toggle checked={hasVP} onChange={setHasVP} />
+          </div>
+          <div className="toggle-row">
+            <span className="toggle-row-lbl">🛡️ Veyon</span>
+            <Toggle checked={hasVeyon} onChange={setHasVeyon} />
+          </div>
+          <div className="toggle-row">
+            <span className="toggle-row-lbl">🖨️ Imprimante</span>
+            <Toggle checked={hasImprimante} onChange={setHasImprimante} />
+          </div>
+        </div>
+        <div className="modal-row">
+          <button className="btn btn-secondary" onClick={onClose}>Annuler</button>
+          <button className="btn btn-primary"   onClick={submit} disabled={!nom.trim()}>Enregistrer</button>
+        </div>
+      </Modal>
+    );
+  };
+
+  /* ═══════════════════════════════════
+     PHASE ROW
+  ═══════════════════════════════════ */
+  const PhaseRow = ({ phase, onToggle }) => (
+    <div className={`phase-row ${phase.checked ? 'ck-on' : ''}`} onClick={() => onToggle(phase.id)}>
+      <div className={`phase-ck ${phase.checked ? 'on' : ''}`} role="checkbox" aria-checked={phase.checked}>
+        {phase.checked && <span className="phase-ck-check">✓</span>}
+      </div>
+      <span className="phase-ico">{phase.icone}</span>
+      <span className={`phase-ttl ${phase.checked ? 'done' : ''}`}>
+        {phase.numero ? `Phase ${phase.numero} — ${phase.nom}` : phase.nom}
+      </span>
+    </div>
+  );
+
+  /* ═══════════════════════════════════
+     ÉCRAN 1 — LISTE DES COLLÈGES
+  ═══════════════════════════════════ */
+  const CollegesScreen = ({ data, setData, onSelect }) => {
+    const [showAdd, setShowAdd] = useState(false);
+
+    const addCollege = ({ nom, ville }) => {
+      setData(prev => ({
+        ...prev,
+        colleges: [...prev.colleges, { id: uid(), nom, ville, notes: '', salles: [] }],
+      }));
+    };
+
+    const deleteCollege = (e, id) => {
+      e.stopPropagation();
+      if (!confirm('Supprimer ce collège et toutes ses salles ?')) return;
+      setData(prev => ({ ...prev, colleges: prev.colleges.filter(c => c.id !== id) }));
+    };
+
+    const nbTermines = data.colleges.filter(c => statutCollege(c) === 'termine').length;
+
+    return (
+      <div className="app">
+        <div className="header">
+          <div className="header-info">
+            <div className="header-title">Déploiement AD — CD79</div>
+            <div className="header-sub">Conseil Départemental des Deux-Sèvres</div>
+          </div>
+        </div>
+
+        <div className="content">
+          {data.colleges.length > 0 && (
+            <div className="stats-row">
+              <div className="stat-card">
+                <div className="stat-val">{data.colleges.length}</div>
+                <div className="stat-lbl">Collège{data.colleges.length > 1 ? 's' : ''}</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-val" style={{ color: '#22C55E' }}>{nbTermines}</div>
+                <div className="stat-lbl">Terminé{nbTermines !== 1 ? 's' : ''}</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-val">{data.colleges.reduce((s, c) => s + c.salles.length, 0)}</div>
+                <div className="stat-lbl">Salles</div>
+              </div>
+            </div>
+          )}
+
+          <button className="btn btn-primary" onClick={() => setShowAdd(true)}>
+            + Ajouter un collège
+          </button>
+
+          {data.colleges.length === 0 ? (
+            <div className="empty">
+              <div className="empty-icon">🏫</div>
+              <div className="empty-txt">Aucun collège enregistré.<br />Appuyez sur le bouton pour commencer.</div>
+            </div>
+          ) : (
+            <>
+              <div className="sec-title">Collèges ({data.colleges.length})</div>
+              {data.colleges.map(college => {
+                const st = statutCollege(college);
+                const terminees = college.salles.filter(s => statutSalle(s) === 'termine').length;
+                const { done, total } = college.salles.reduce(
+                  (acc, s) => { const p = progressSalle(s); return { done: acc.done + p.done, total: acc.total + p.total }; },
+                  { done: 0, total: 0 }
+                );
+
+                return (
+                  <div key={college.id} className="card" onClick={() => onSelect(college.id)}>
+                    <div className="card-head">
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className="card-name">{college.nom}</div>
+                        {college.ville && <div className="card-sub">📍 {college.ville}</div>}
+                      </div>
+                      <div className="card-actions">
+                        <Badge statut={st} />
+                        <button className="del-btn" onClick={e => deleteCollege(e, college.id)} title="Supprimer">✕</button>
+                      </div>
+                    </div>
+
+                    <div style={{ fontSize: 13, color: '#64748b', marginTop: 6 }}>
+                      {college.salles.length === 0
+                        ? 'Aucune salle'
+                        : `${terminees} / ${college.salles.length} salle${college.salles.length > 1 ? 's' : ''} terminée${terminees > 1 ? 's' : ''}`}
+                    </div>
+
+                    {college.salles.length > 0 && (
+                      <div style={{ marginTop: 8 }}>
+                        <ProgBar done={done} total={total} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </>
+          )}
+        </div>
+
+        {showAdd && <AddCollegeModal onClose={() => setShowAdd(false)} onAdd={addCollege} />}
+      </div>
+    );
+  };
+
+  /* ═══════════════════════════════════
+     ÉCRAN 2 — SALLES D'UN COLLÈGE
+  ═══════════════════════════════════ */
+  const SallesScreen = ({ data, setData, collegeId, onBack, onSelect }) => {
+    const [showAdd, setShowAdd] = useState(false);
+
+    const college = data.colleges.find(c => c.id === collegeId);
+    if (!college) return null;
+
+    const addSalle = ({ nom, nbPcProf, nbPcEleves, hasVideoProjecteur, hasVeyon, hasImprimante }) => {
+      const salle = {
+        id: uid(), nom, nbPcProf, nbPcEleves, hasVideoProjecteur, hasVeyon, hasImprimante,
+        notes: '',
+        phases: createPhases(hasVideoProjecteur, hasVeyon, hasImprimante),
+      };
+      setData(prev => ({
+        ...prev,
+        colleges: prev.colleges.map(c =>
+          c.id === collegeId ? { ...c, salles: [...c.salles, salle] } : c
+        ),
+      }));
+    };
+
+    const deleteSalle = (e, id) => {
+      e.stopPropagation();
+      if (!confirm('Supprimer cette salle ?')) return;
+      setData(prev => ({
+        ...prev,
+        colleges: prev.colleges.map(c =>
+          c.id === collegeId ? { ...c, salles: c.salles.filter(s => s.id !== id) } : c
+        ),
+      }));
+    };
+
+    const updateNotesCollege = useCallback((notes) => {
+      setData(prev => ({
+        ...prev,
+        colleges: prev.colleges.map(c => c.id === collegeId ? { ...c, notes } : c),
+      }));
+    }, [collegeId]);
+
+    const st        = statutCollege(college);
+    const terminees = college.salles.filter(s => statutSalle(s) === 'termine').length;
+    const enCours   = college.salles.filter(s => statutSalle(s) === 'en_cours').length;
+
+    return (
+      <div className="app">
+        <div className="header">
+          <button className="btn-back" onClick={onBack}>‹</button>
+          <div className="header-info">
+            <div className="header-title">{college.nom}</div>
+            {college.ville && <div className="header-sub">📍 {college.ville}</div>}
+          </div>
+          <Badge statut={st} />
+        </div>
+
+        <div className="content">
+          {college.salles.length > 0 && (
+            <div className="stats-row">
+              <div className="stat-card">
+                <div className="stat-val">{college.salles.length}</div>
+                <div className="stat-lbl">Salle{college.salles.length > 1 ? 's' : ''}</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-val" style={{ color: '#22C55E' }}>{terminees}</div>
+                <div className="stat-lbl">Terminée{terminees > 1 ? 's' : ''}</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-val" style={{ color: '#F59E0B' }}>{enCours}</div>
+                <div className="stat-lbl">En cours</div>
+              </div>
+            </div>
+          )}
+
+          <button className="btn btn-primary" onClick={() => setShowAdd(true)}>
+            + Ajouter une salle
+          </button>
+
+          {college.salles.length === 0 ? (
+            <div className="empty">
+              <div className="empty-icon">🚪</div>
+              <div className="empty-txt">Aucune salle enregistrée.<br />Ajoutez une salle pour commencer le déploiement.</div>
+            </div>
+          ) : (
+            <>
+              <div className="sec-title">Salles ({college.salles.length})</div>
+              {college.salles.map(salle => {
+                const ss = statutSalle(salle);
+                const { done, total } = progressSalle(salle);
+                const pct = total ? Math.round((done / total) * 100) : 0;
+
+                return (
+                  <div key={salle.id} className="card" onClick={() => onSelect(salle.id)}>
+                    <div className="card-head">
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className="card-name">{salle.nom}</div>
+                      </div>
+                      <div className="card-actions">
+                        <Badge statut={ss} />
+                        <button className="del-btn" onClick={e => deleteSalle(e, salle.id)} title="Supprimer">✕</button>
+                      </div>
+                    </div>
+
+                    <div className="chips">
+                      <span className="chip">🖥️ {salle.nbPcProf} PC prof</span>
+                      {salle.nbPcEleves > 0 && (
+                        <span className="chip">🖥️ {salle.nbPcEleves} PC élève{salle.nbPcEleves > 1 ? 's' : ''}</span>
+                      )}
+                      {salle.hasVideoProjecteur && <span className="chip">📽️ Vidéoproj</span>}
+                      {salle.hasVeyon           && <span className="chip">🛡️ Veyon</span>}
+                      {salle.hasImprimante      && <span className="chip">🖨️ Imprimante</span>}
+                    </div>
+
+                    <div style={{ marginTop: 10 }}>
+                      <div className="prog-lbl">
+                        <span>Progression</span>
+                        <span>{done}/{total} étapes ({pct}%)</span>
+                      </div>
+                      <ProgBar done={done} total={total} />
+                    </div>
+                  </div>
+                );
+              })}
+            </>
+          )}
+
+          {/* Notes du collège */}
+          <div className="sec-title" style={{ marginTop: 4 }}>Notes du collège</div>
+          <div className="college-notes">
+            <div className="college-notes-hd">📝 Notes</div>
+            <textarea
+              className="college-notes-ta"
+              placeholder="Remarques générales sur le collège, contacts sur place, accès salle serveur, mots de passe BIOS…"
+              value={college.notes || ''}
+              onChange={e => updateNotesCollege(e.target.value)}
+            />
+          </div>
+
+          <div style={{ height: 16 }} />
+        </div>
+
+        {showAdd && <AddSalleModal onClose={() => setShowAdd(false)} onAdd={addSalle} />}
+      </div>
+    );
+  };
+
+  /* ═══════════════════════════════════
+     ÉCRAN 3 — CHECKLIST SALLE
+  ═══════════════════════════════════ */
+  const SalleScreen = ({ data, setData, collegeId, salleId, onBack }) => {
+    const [showEdit, setShowEdit] = useState(false);
+
+    const college = data.colleges.find(c => c.id === collegeId);
+    const salle   = college?.salles.find(s => s.id === salleId);
+
+    if (!salle) return null;
+
+    const st = statutSalle(salle);
+    const { done, total } = progressSalle(salle);
+    const pct = total ? Math.round((done / total) * 100) : 0;
+
+    const saveSalleConfig = ({ nom, nbPcProf, nbPcEleves, hasVideoProjecteur, hasVeyon, hasImprimante }) => {
+      setData(prev => ({
+        ...prev,
+        colleges: prev.colleges.map(c =>
+          c.id !== collegeId ? c : {
+            ...c,
+            salles: c.salles.map(s =>
+              s.id !== salleId ? s : {
+                ...s,
+                nom, nbPcProf, nbPcEleves, hasVideoProjecteur, hasVeyon, hasImprimante,
+                phases: rebuildOptionalPhases(s.phases, hasVideoProjecteur, hasVeyon, hasImprimante),
+              }
+            ),
+          }
+        ),
+      }));
+    };
+
+    const togglePhase = (phaseId) => {
+      setData(prev => ({
+        ...prev,
+        colleges: prev.colleges.map(c =>
+          c.id !== collegeId ? c : {
+            ...c,
+            salles: c.salles.map(s =>
+              s.id !== salleId ? s : {
+                ...s,
+                phases: s.phases.map(p =>
+                  p.id !== phaseId ? p : { ...p, checked: !p.checked }
+                ),
+              }
+            ),
+          }
+        ),
+      }));
+    };
+
+    const updateNotes = useCallback((notes) => {
+      setData(prev => ({
+        ...prev,
+        colleges: prev.colleges.map(c =>
+          c.id !== collegeId ? c : {
+            ...c,
+            salles: c.salles.map(s =>
+              s.id !== salleId ? s : { ...s, notes }
+            ),
+          }
+        ),
+      }));
+    }, [collegeId, salleId]);
+
+    return (
+      <div className="app">
+        <div className="header">
+          <button className="btn-back" onClick={onBack}>‹</button>
+          <div className="header-info">
+            <div className="header-title">{salle.nom}</div>
+            <div className="header-sub">{college.nom}</div>
+          </div>
+          <Badge statut={st} />
+          <button className="btn-edit" onClick={() => setShowEdit(true)} title="Modifier la configuration">⚙️</button>
+        </div>
+
+        <div className="content">
+          {/* Info box */}
+          <div className="info-box">
+            <div className="chips" style={{ marginTop: 0 }}>
+              <span className="chip">🖥️ {salle.nbPcProf} PC prof</span>
+              {salle.nbPcEleves > 0 && (
+                <span className="chip">🖥️ {salle.nbPcEleves} PC élève{salle.nbPcEleves > 1 ? 's' : ''}</span>
+              )}
+              {salle.hasVideoProjecteur && <span className="chip">📽️ Vidéoproj</span>}
+              {salle.hasVeyon           && <span className="chip">🛡️ Veyon</span>}
+              {salle.hasImprimante      && <span className="chip">🖨️ Imprimante</span>}
+            </div>
+            <div style={{ marginTop: 12 }}>
+              <div className="prog-lbl">
+                <span>Progression globale</span>
+                <span>{done}/{total} phase{total > 1 ? 's' : ''} — {pct}%</span>
+              </div>
+              <ProgBar done={done} total={total} height={9} />
+            </div>
+          </div>
+
+          {/* Phases */}
+          <div className="sec-title">Phases d'installation</div>
+
+          {salle.phases.map(phase => (
+            <PhaseRow
+              key={phase.id}
+              phase={phase}
+              onToggle={togglePhase}
+            />
+          ))}
+
+          {/* Notes */}
+          <div className="sec-title">Notes</div>
+          <div className="notes-wrap">
+            <div className="notes-hd">📝 Notes libres</div>
+            <textarea
+              className="notes-ta"
+              placeholder="Problèmes rencontrés, références matériel, observations…"
+              value={salle.notes || ''}
+              onChange={e => updateNotes(e.target.value)}
+            />
+          </div>
+
+          <div style={{ height: 24 }} />
+        </div>
+
+        {showEdit && (
+          <EditSalleModal
+            salle={salle}
+            onClose={() => setShowEdit(false)}
+            onSave={saveSalleConfig}
+          />
+        )}
+      </div>
+    );
+  };
+
+  /* ═══════════════════════════════════
+     APP ROOT
+  ═══════════════════════════════════ */
+  const App = () => {
+    const [data,             setData]           = useState(loadData);
+    const [screen,           setScreen]         = useState('colleges');
+    const [selectedCollege,  setSelectedCollege] = useState(null);
+    const [selectedSalle,    setSelectedSalle]   = useState(null);
+
+    // Persist on every data change
+    useEffect(() => { saveData(data); }, [data]);
+
+    if (screen === 'salle') {
+      return (
+        <SalleScreen
+          data={data} setData={setData}
+          collegeId={selectedCollege}
+          salleId={selectedSalle}
+          onBack={() => { setScreen('salles'); setSelectedSalle(null); }}
+        />
+      );
+    }
+
+    if (screen === 'salles') {
+      return (
+        <SallesScreen
+          data={data} setData={setData}
+          collegeId={selectedCollege}
+          onBack={() => { setScreen('colleges'); setSelectedCollege(null); }}
+          onSelect={id => { setSelectedSalle(id); setScreen('salle'); }}
+        />
+      );
+    }
+
+    return (
+      <CollegesScreen
+        data={data} setData={setData}
+        onSelect={id => { setSelectedCollege(id); setScreen('salles'); }}
+      />
+    );
+  };
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .catch((err) => console.warn('Service worker non enregistré :', err));
+    });
+  }
+</script>
+</body>
+</html>
